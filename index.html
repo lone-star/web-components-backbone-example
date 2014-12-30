@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="bower_components/webcomponentsjs/webcomponents.js"></script>
+    <script src="bower_components/underscore/underscore.js"></script>
+    <script src="bower_components/jquery/dist/jquery.js"></script>
+    <script src="bower_components/backbone/backbone.js"></script>
+
+    <script type="template/underscore" id="toggle-all-completed-template">
+      <input type="checkbox" name="toggle-completed"
+        <%= tasks.hasIncomplete() ? '' : 'checked' %>/>
+    </script>
+
+    <script type="template/underscore" id="task-item-template">
+      <div class="item <%= task.get('completed') ? 'completed' : '' %>"
+        data-id="<%= task.cid %>">
+
+        <input class="toggle-completed" type="checkbox" name="completed"
+          <%= task.get('completed') ? 'checked' : '' %>/>
+
+        <div class="description">
+          <%= task.get('description') %>
+        </div>
+
+        <button class="delete">Delete</button>
+
+      </div>
+    </script>
+
+    <script src="app/main.js"></script>
+  </head>
+  <body>
+  <app-main>
+    <app-toggle-all-completed collection="tasks"></app-toggle-all-completed>
+    <app-new-task collection="tasks"></app-new-task>
+    <app-task-list collection="tasks"></app-task-list>
+  </app-main>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "component-todo",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Benjamin Michel <benjamin.michel.cn@gmail.com> (https://github.com/lone-star)",
+  "license": "ISC",
+  "dependencies": {
+    "connect": "^3.3.3",
+    "serve-static": "^1.7.1"
+  }
+}
