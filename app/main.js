@@ -2,106 +2,6 @@ Backbone.sync = function(){
   return false;
 };
 
-var MiniComponent = function(appName){
-  var _this = this;
-  this.services = {};
-
-  document.registerElement(appName, {
-    prototype: _.extend(Object.create(HTMLElement.prototype), {
-      createdCallback: function() {
-        _this.el = this;
-      }
-    })
-  });
-};
-
-MiniComponent.prototype = {
-  registerView: function(View, name) {
-    var _this = this;
-
-    document.registerElement(name, {
-      prototype: _.extend(Object.create(HTMLElement.prototype), {
-        createdCallback: function() {
-          var options = {};
-          var attributes = this.attributes;
-          var namedItem;
-
-          _.each(_this.services, function(service, key){
-            if (attributes.getNamedItem(key)) {
-              options[key] = service;
-            }
-          });
-
-
-          if (namedItem = attributes.getNamedItem('collection')) {
-            options[namedItem.value] = _this.services[namedItem.value];
-            options['collection'] = _this.services[namedItem.value];
-          }
-
-          if (namedItem = attributes.getNamedItem('collection')) {
-            options[namedItem.value] = _this.services[namedItem.value];
-            options['model'] = _this.services[namedItem.value];
-          }
-
-          view = new View(_.extend(options, {
-            el: this,
-          }));
-
-          view.render();
-
-          _this.parseListeners(attributes, view, options);
-        }
-      })
-    });
-  },
-
-  parseListeners: function(attributes, view, options) {
-    var attributesArray = Array.prototype.slice.call(attributes);
-    var node;
-    var method;
-
-    for(key in attributesArray) {
-      node = attributesArray[key];
-
-      if (node.nodeName.match(/-on$/)) {
-        method = node.nodeName.replace(/-on$/, '');
-
-        this.registerMethod(method, node.value, view, options);
-      }
-    }
-  },
-
-  registerMethod: function(method, eventsDefinition, view, options) {
-    var eventArray = eventsDefinition.split(' ');
-    var eventDefinition;
-    var service;
-    var callers;
-
-    for(key in eventArray) {
-      eventDefinition = eventArray[key];
-
-      service = this.getServiceFromEventDefinition(eventDefinition, options);
-      callers = this.getCallersFromEventDefinition(eventDefinition);
-
-      view.listenTo(service, callers, view[method]);
-    }
-  },
-
-  getServiceFromEventDefinition: function(eventDefinition, options) {
-    var serviceName = eventDefinition.replace(/\|(.+)$/, '')
-    return options[serviceName];
-  },
-
-  getCallersFromEventDefinition: function(eventDefinition) {
-    var callers = eventDefinition.replace(/^.*\|/, '')
-    return callers.replace(/,/g, ' ');
-  },
-
-  registerService: function(collection, name) {
-    this.services[name] = collection;
-  }
-};
-
 var app = new MiniComponent('app-main');
 
 var Task = Backbone.Model.extend({
@@ -129,9 +29,9 @@ var Tasks = Backbone.Collection.extend({
   }
 });
 
-app.registerService(new Tasks(), 'tasks');
+app.registerService('tasks', new Tasks());
 
-var NewTaskView = Backbone.View.extend({
+app.registerView('app-new-task', Backbone.View.extend({
   template: '<input type="text" name="new-task"/>',
 
   events: {
@@ -152,12 +52,10 @@ var NewTaskView = Backbone.View.extend({
       });
     }
   }
-});
-
-app.registerView(NewTaskView, 'app-new-task');
+}));
 
 
-var ToggleAllCompleted = Backbone.View.extend({
+app.registerView('app-toggle-all-completed', Backbone.View.extend({
   template: _.template(document.getElementById('toggle-all-completed-template').innerHTML),
 
   events: {
@@ -174,12 +72,10 @@ var ToggleAllCompleted = Backbone.View.extend({
   toggleCompleted: function() {
     this.collection.toggleCompleted();
   }
-});
-
-app.registerView(ToggleAllCompleted, 'app-toggle-all-completed');
+}));
 
 
-var TaskListView = Backbone.View.extend({
+app.registerView('app-task-list', Backbone.View.extend({
   template: _.template(document.getElementById('task-item-template').innerHTML),
 
   events: {
@@ -208,8 +104,6 @@ var TaskListView = Backbone.View.extend({
     var id = this.$(e.target).closest('.item').data('id');
     var task = this.collection.get(id);
     this.collection.remove(task);
-  },
-});
-
-app.registerView(TaskListView, 'app-task-list');
+  }
+}));
 
