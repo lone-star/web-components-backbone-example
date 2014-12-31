@@ -26,9 +26,9 @@ MiniComponent.prototype = {
           var attributes = this.attributes;
           var namedItem;
 
-          _.each(_this.collections, function(collection, key){
+          _.each(_this.services, function(service, key){
             if (attributes.getNamedItem(key)) {
-              options[key] = collection;
+              options[key] = service;
             }
           })
 
@@ -43,10 +43,55 @@ MiniComponent.prototype = {
           view = new View(_.extend(options, {
             el: this,
           }));
+
           view.render();
+
+          _this.parseListeners(attributes, view);
         }
       })
     });
+  },
+
+  parseListeners: function(attributes, view) {
+    var attributesArray = Array.prototype.slice.call(attributes);
+    var node;
+    var method;
+
+    for(key in attributesArray) {
+      node = attributesArray[key];
+
+      if (node.nodeName.match(/-on$/)) {
+        method = node.nodeName.replace(/-on$/, '');
+
+        this.registerMethod(method, node.value, view);
+      }
+    }
+  },
+
+  registerMethod: function(method, eventsDefinition, view) {
+    var eventArray = eventsDefinition.split(' ');
+    var eventDefinition;
+    var service;
+    var callers;
+
+    for(key in eventArray) {
+      eventDefinition = eventArray[key];
+
+      service = this.getServiceFromEventDefinition(eventDefinition);
+      callers = this.getCallersFromEventDefinition(eventDefinition);
+
+      view.listenTo(service, callers, view[method]);
+    }
+  },
+
+  getServiceFromEventDefinition: function(eventDefinition) {
+    var serviceName = eventDefinition.replace(/:(.+)$/, '')
+    return this.services[serviceName];
+  },
+
+  getCallersFromEventDefinition: function(eventDefinition) {
+    var callers = eventDefinition.replace(/^.*:/, '')
+    return callers.replace(/,/g, ' ');
   },
 
   registerService: function(collection, name) {
@@ -116,11 +161,6 @@ var ToggleAllCompleted = Backbone.View.extend({
     "change [name=toggle-completed]": 'toggleCompleted'
   },
 
-  initialize: function() {
-    _.bindAll(this, 'render');
-    this.collection.on('add change remove reset', this.render);
-  },
-
   render: function() {
     this.el.innerHTML = this.template({
       tasks: this.collection
@@ -142,11 +182,6 @@ var TaskListView = Backbone.View.extend({
   events: {
     'change .toggle-completed': 'toggleCompleted',
     'click .delete': 'deleteItem'
-  },
-
-  initialize: function(options){
-    _.bindAll(this, 'render');
-    this.collection.on('add change remove reset', this.render);
   },
 
   render: function() {

@@ -31,9 +31,14 @@
   </head>
   <body>
   <app-main>
-    <app-toggle-all-completed collection="tasks"></app-toggle-all-completed>
-    <app-new-task collection="tasks"></app-new-task>
-    <app-task-list collection="tasks"></app-task-list>
+    <app-toggle-all-completed
+      collection="tasks"
+      render-on="tasks:add,change,remove,reset"></app-toggle-all-completed>
+    <app-new-task
+      collection="tasks"></app-new-task>
+    <app-task-list
+      collection="tasks"
+      render-on="tasks:add,change,remove,reset"></app-task-list>
   </app-main>
   </body>
 </html>
