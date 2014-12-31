@@ -19,16 +19,15 @@ MiniComponent.prototype = {
     document.registerElement(name, {
       prototype: _.extend(Object.create(HTMLElement.prototype), {
         createdCallback: function() {
-          var options = {};
           var attributes = this.attributes;
           var namedItem;
+          var options = {};
 
           _.each(_this.services, function(service, key){
             if (attributes.getNamedItem(key)) {
               options[key] = service;
             }
           });
-
 
           if (namedItem = attributes.getNamedItem('collection')) {
             options[namedItem.value] = _this.services[namedItem.value];
@@ -44,12 +43,41 @@ MiniComponent.prototype = {
             el: this,
           }));
 
-          view.render();
+          _this.replaceChildrenNode(view, this.innerHTML);
 
           _this.parseListeners(attributes, view, options);
         }
       })
     });
+  },
+
+  replaceChildrenNode: function(view, children) {
+
+    if (children.length > 0) {
+      var render = view.render;
+
+      view.render = function() {
+
+        var element;
+        var parentNode;
+        var newElement;
+
+        render.apply(view);
+        element = document.getElementsByTagName('mini-children')[0];
+        parentNode = element.parentNode;
+
+        setTimeout(function(){
+          newElement = document.createElement('div');
+          newElement.innerHTML = children;
+          parentNode.replaceChild(newElement, element);
+        });
+      };
+
+      view.render();
+
+    } else {
+      view.render();
+    }
   },
 
   parseListeners: function(attributes, view, options) {

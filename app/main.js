@@ -142,16 +142,12 @@ app.registerView('app-task-list', Backbone.View.extend({
     e.preventDefault();
     var id = this.$(e.target).closest('.item').data('id');
     var task = this.collection.get(id);
-    this.collection.remove(task);
+    task.destroy();
   },
-
-  changevisible: function(models) {
-    console.log('here', models);
-  }
 }));
 
-app.registerView('app-task-list-action', Backbone.View.extend({
-  template: _.template(document.getElementById('task-list-action-template').innerHTML),
+app.registerView('app-list-filters', Backbone.View.extend({
+  template: _.template(document.getElementById('list-filters-template').innerHTML),
 
   events: {
     'change [name=visible-items]': 'changeVisible',

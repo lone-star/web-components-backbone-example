@@ -29,7 +29,9 @@
       </div>
     </script>
 
-    <script type="template/underscore" id="task-list-action-template">
+    <script type="template/underscore" id="list-filters-template">
+      <mini-children></mini-children>
+
       <div class="items-left">
         <%= tasks.getUncompletedCount() %>
         item<%= tasks.getUncompletedCount() === 1 ? '' : 's' %>
@@ -59,17 +61,21 @@
   </head>
   <body>
     <app-main>
+
       <app-toggle-all-completed
         collection="tasks"
         render-on="tasks|add,change,remove,reset"></app-toggle-all-completed>
+
       <app-new-task
         collection="tasks"></app-new-task>
-      <app-task-list
+
+      <app-list-filters
         collection="tasks"
-        render-on="tasks|add,change,remove,reset"></app-task-list>
-      <app-task-list-action
-        collection="tasks"
-        render-on="tasks|add,change,remove,reset"></app-task-list-action>
+        render-on="tasks|add,change,remove,reset">
+
+        <app-task-list collection="tasks"></app-task-list>
+      </app-list-filters>
+
     </app-main>
   </body>
 </html>
