@@ -29,18 +29,47 @@
       </div>
     </script>
 
+    <script type="template/underscore" id="task-list-action-template">
+      <div class="items-left">
+        <%= tasks.getUncompletedCount() %>
+        item<%= tasks.getUncompletedCount() === 1 ? '' : 's' %>
+        left
+      </div>
+      <label>
+        <input type="radio" name="visible-items" value="all"
+          <%= tasks.visibility === 'all' ? 'checked="checked"' : '' %>/>
+        All
+      </label>
+      <label>
+        <input type="radio" name="visible-items" value="active"
+          <%= tasks.visibility === 'active' ? 'checked="checked"' : '' %>/>
+        Active
+      </label>
+      <label>
+        <input type="radio" name="visible-items" value="completed"
+          <%= tasks.visibility === 'completed' ? 'checked="checked"' : '' %>/>
+        Completed
+      </label>
+      <% if(tasks.getCompleted().length > 0){ %>
+        <button class="clear-completed">Clear completed</button>
+      <% } %>
+    </script>
+
     <script src="app/main.js"></script>
   </head>
   <body>
-  <app-main>
-    <app-toggle-all-completed
-      collection="tasks"
-      render-on="tasks|add,change,remove,reset"></app-toggle-all-completed>
-    <app-new-task
-      collection="tasks"></app-new-task>
-    <app-task-list
-      collection="tasks"
-      render-on="tasks|add,change,remove,reset"></app-task-list>
-  </app-main>
+    <app-main>
+      <app-toggle-all-completed
+        collection="tasks"
+        render-on="tasks|add,change,remove,reset"></app-toggle-all-completed>
+      <app-new-task
+        collection="tasks"></app-new-task>
+      <app-task-list
+        collection="tasks"
+        render-on="tasks|add,change,remove,reset"></app-task-list>
+      <app-task-list-action
+        collection="tasks"
+        render-on="tasks|add,change,remove,reset"></app-task-list-action>
+    </app-main>
   </body>
 </html>

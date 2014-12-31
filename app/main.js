@@ -14,6 +14,10 @@ var Task = Backbone.Model.extend({
 var Tasks = Backbone.Collection.extend({
   model: Task,
 
+  initialize: function() {
+    this.visibility = 'all';
+  },
+
   hasIncomplete: function(){
     return this.length > 0 ? this.reduce(function(mod, task){
       return !task.get('completed') || mod;
@@ -26,6 +30,37 @@ var Tasks = Backbone.Collection.extend({
       task.set({completed: value}, {silent: true});
     });
     this.trigger('reset');
+    return this;
+  },
+
+  getUncompletedCount: function() {
+    return this.where({completed: false}).length;
+  },
+
+  getCompleted: function() {
+    return this.where({completed: true});
+  },
+
+  setVisibility: function(option) {
+    this.visibility = option;
+    this.trigger('reset');
+    return this;
+  },
+
+  getVisible: function() {
+    var visibleModels;
+    switch(this.visibility) {
+      case 'all':
+        visibleModels = this.toArray();
+        break;
+      case 'active':
+        visibleModels = this.where({completed: false});
+        break;
+      case 'completed':
+        visibleModels = this.getCompleted();
+        break;
+    }
+    return visibleModels;
   }
 });
 
@@ -84,7 +119,11 @@ app.registerView('app-task-list', Backbone.View.extend({
   },
 
   render: function() {
-    this.el.innerHTML = this.collection.map(function(task){
+    if (typeof this.collection.getVisible() === 'undefined') {
+      return this;
+    }
+
+    this.el.innerHTML = this.collection.getVisible().map(function(task){
       return this.template({
         task: task
       });
@@ -104,6 +143,34 @@ app.registerView('app-task-list', Backbone.View.extend({
     var id = this.$(e.target).closest('.item').data('id');
     var task = this.collection.get(id);
     this.collection.remove(task);
+  },
+
+  changevisible: function(models) {
+    console.log('here', models);
+  }
+}));
+
+app.registerView('app-task-list-action', Backbone.View.extend({
+  template: _.template(document.getElementById('task-list-action-template').innerHTML),
+
+  events: {
+    'change [name=visible-items]': 'changeVisible',
+    'click .clear-completed': 'clearCompleted'
+  },
+
+  render: function() {
+    this.el.innerHTML = this.template({
+      tasks: this.collection,
+    });
+    return this;
+  },
+
+  changeVisible: function(e) {
+    this.collection.setVisibility(this.$(e.target).val());
+  },
+
+  clearCompleted: function() {
+    this.collection.remove(this.collection.getCompleted());
   }
 }));
 
