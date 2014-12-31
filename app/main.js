@@ -30,13 +30,16 @@ MiniComponent.prototype = {
             if (attributes.getNamedItem(key)) {
               options[key] = service;
             }
-          })
+          });
+
 
           if (namedItem = attributes.getNamedItem('collection')) {
+            options[namedItem.value] = _this.services[namedItem.value];
             options['collection'] = _this.services[namedItem.value];
           }
 
           if (namedItem = attributes.getNamedItem('collection')) {
+            options[namedItem.value] = _this.services[namedItem.value];
             options['model'] = _this.services[namedItem.value];
           }
 
@@ -46,13 +49,13 @@ MiniComponent.prototype = {
 
           view.render();
 
-          _this.parseListeners(attributes, view);
+          _this.parseListeners(attributes, view, options);
         }
       })
     });
   },
 
-  parseListeners: function(attributes, view) {
+  parseListeners: function(attributes, view, options) {
     var attributesArray = Array.prototype.slice.call(attributes);
     var node;
     var method;
@@ -63,12 +66,12 @@ MiniComponent.prototype = {
       if (node.nodeName.match(/-on$/)) {
         method = node.nodeName.replace(/-on$/, '');
 
-        this.registerMethod(method, node.value, view);
+        this.registerMethod(method, node.value, view, options);
       }
     }
   },
 
-  registerMethod: function(method, eventsDefinition, view) {
+  registerMethod: function(method, eventsDefinition, view, options) {
     var eventArray = eventsDefinition.split(' ');
     var eventDefinition;
     var service;
@@ -77,20 +80,20 @@ MiniComponent.prototype = {
     for(key in eventArray) {
       eventDefinition = eventArray[key];
 
-      service = this.getServiceFromEventDefinition(eventDefinition);
+      service = this.getServiceFromEventDefinition(eventDefinition, options);
       callers = this.getCallersFromEventDefinition(eventDefinition);
 
       view.listenTo(service, callers, view[method]);
     }
   },
 
-  getServiceFromEventDefinition: function(eventDefinition) {
-    var serviceName = eventDefinition.replace(/:(.+)$/, '')
-    return this.services[serviceName];
+  getServiceFromEventDefinition: function(eventDefinition, options) {
+    var serviceName = eventDefinition.replace(/\|(.+)$/, '')
+    return options[serviceName];
   },
 
   getCallersFromEventDefinition: function(eventDefinition) {
-    var callers = eventDefinition.replace(/^.*:/, '')
+    var callers = eventDefinition.replace(/^.*\|/, '')
     return callers.replace(/,/g, ' ');
   },
 
