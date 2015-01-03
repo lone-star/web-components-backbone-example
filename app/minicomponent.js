@@ -98,12 +98,19 @@
   Component.prototype = {
 
     registerComponent: function(options) {
+      var _this = this;
+
       if (!options) {
         throw new Error('a component name needs to be provided');
       }
       document.registerElement(options.name, {
         prototype: _.extend(Object.create(HTMLElement.prototype), {
-          createdCallback: options.createdCallback || function(){}
+          createdCallback: function(){
+            _this.el = this;
+            if (options.createdCallback) {
+              options.createdCallback.apply(this, arguments);
+            }
+          }
         })
       });
     },
@@ -111,27 +118,28 @@
     registerView: function(name, View) {
       var _this = this;
 
-      this.registerComponent({
+      var component = new Component(name);
+      component.registerComponent({
         name: name,
         createdCallback: function(){
           var attributes = this.attributes;
           var namedItem;
           var options = {};
 
-          _.each(_this.services, function(service, key){
+          _.each(_this.getAllServices(), function(service, key){
             if (attributes.getNamedItem(key)) {
               options[key] = service;
             }
           });
 
           if (namedItem = attributes.getNamedItem('collection')) {
-            options[namedItem.value] = _this.services[namedItem.value];
-            options['collection'] = _this.services[namedItem.value];
+            options[namedItem.value] = _this.getService(namedItem.value);
+            options['collection'] = _this.getService(namedItem.value);
           }
 
           if (namedItem = attributes.getNamedItem('collection')) {
-            options[namedItem.value] = _this.services[namedItem.value];
-            options['model'] = _this.services[namedItem.value];
+            options[namedItem.value] = _this.getService(namedItem.value);
+            options['model'] = _this.getService(namedItem.value);
           }
 
           view = new View(_.extend(options, {
@@ -143,10 +151,23 @@
           parseListeners(attributes, view, options);
         }
       });
+
+      return component;
     },
 
     registerService: function(name, collection) {
+      // TODO: save services inside element
       this.services[name] = collection;
+    },
+
+    getService: function(name) {
+      // TODO: load service from parent elements
+      return this.services[name];
+    },
+
+    getAllServices: function() {
+      // TODO: get all the services from parent elements
+      return this.services;
     }
   };
 
