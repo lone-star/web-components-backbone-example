@@ -105,12 +105,15 @@
       }
       document.registerElement(options.name, {
         prototype: _.extend(Object.create(HTMLElement.prototype), {
-          createdCallback: function(){
+          attachedCallback: function(){
             _this.el = this;
-            if (options.createdCallback) {
-              options.createdCallback.apply(this, arguments);
+            this._services = _this.services;
+            this._miniComponent = true;
+            if (options.attachedCallback) {
+              options.attachedCallback.apply(this, arguments);
             }
-          }
+          },
+          createdCallback: options.createdCallback || function(){}
         })
       });
     },
@@ -121,7 +124,7 @@
       var component = new Component(name);
       component.registerComponent({
         name: name,
-        createdCallback: function(){
+        attachedCallback: function() {
           var attributes = this.attributes;
           var namedItem;
           var options = {};
@@ -133,13 +136,13 @@
           });
 
           if (namedItem = attributes.getNamedItem('collection')) {
-            options[namedItem.value] = _this.getService(namedItem.value);
-            options['collection'] = _this.getService(namedItem.value);
+            options[namedItem.value] = component.getService(namedItem.value);
+            options['collection'] = component.getService(namedItem.value);
           }
 
-          if (namedItem = attributes.getNamedItem('collection')) {
-            options[namedItem.value] = _this.getService(namedItem.value);
-            options['model'] = _this.getService(namedItem.value);
+          if (namedItem = attributes.getNamedItem('model')) {
+            options[namedItem.value] = component.getService(namedItem.value);
+            options['model'] = component.getService(namedItem.value);
           }
 
           view = new View(_.extend(options, {
@@ -149,32 +152,62 @@
           replaceChildrenNode(view, this.innerHTML);
 
           parseListeners(attributes, view, options);
+        },
+        createdCallback: function(){
         }
       });
 
       return component;
     },
 
-    registerService: function(name, collection) {
-      // TODO: save services inside element
-      this.services[name] = collection;
+    registerService: function(name, service) {
+      if (this.el) {
+        this.el._services[name] = service;
+      } else {
+        this.services[name] = service;
+      }
     },
 
     getService: function(name) {
-      // TODO: load service from parent elements
-      return this.services[name];
+      var element =  this.el;
+      var passedRoot = false;
+
+      while(element.parentNode && !passedRoot) {
+        element = element.parentNode;
+        passedRoot = !!element._miniComponentRoot;
+
+        if (element._miniComponent && element._services.hasOwnProperty(name)) {
+          return element._services[name];
+        }
+      }
+
+      return null;
     },
 
     getAllServices: function() {
-      // TODO: get all the services from parent elements
-      return this.services;
+      var element =  this.el;
+      var passedRoot = false;
+      var services = {};
+
+      while(element.parentNode && !passedRoot) {
+        element = element.parentNode;
+        passedRoot = !!element._miniComponentRoot;
+
+        if (element._miniComponent) {
+          services = _.extend(element._services, services);
+        }
+      }
+      return services;
     }
   };
 
   return function(name) {
     var component = new Component(name);
     component.registerComponent({
-      name: name
+      name: name,
+      createdCallback: function() {
+        this._miniComponentRoot = true;
+      }
     });
     return component;
   };
