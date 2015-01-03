@@ -2,7 +2,7 @@ Backbone.sync = function(){
   return false;
 };
 
-var app = new MiniComponent('app-main');
+var app = miniComponent('app-main');
 
 var Task = Backbone.Model.extend({
   defaults: {
