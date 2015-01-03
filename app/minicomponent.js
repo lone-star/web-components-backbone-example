@@ -19,17 +19,27 @@
 
 })(this, function(root, _) {
 
-  var MiniComponent = function(appName){
-    var _this = this;
+  var Component = function(elementName) {
     this.services = {};
+    this.elementName = elementName;
+  };
 
-    document.registerElement(appName, {
-      prototype: _.extend(Object.create(HTMLElement.prototype), {
-        createdCallback: function() {
-          _this.el = this;
-        }
-      })
-    });
+  Component.prototype = {
+
+    registerComponent: function(options) {
+      options = options || {};
+      document.registerElement(this.elementName, {
+        prototype: _.extend(Object.create(HTMLElement.prototype), {
+          createdCallback: options.createdCallback || function(){}
+        })
+      });
+    }
+
+  };
+
+  var MiniComponent = function(appName){
+    this.mainComponent = new Component(appName);
+    this.mainComponent.registerComponent();
   };
 
   MiniComponent.prototype = {
@@ -43,20 +53,20 @@
             var namedItem;
             var options = {};
 
-            _.each(_this.services, function(service, key){
+            _.each(_this.mainComponent.services, function(service, key){
               if (attributes.getNamedItem(key)) {
                 options[key] = service;
               }
             });
 
             if (namedItem = attributes.getNamedItem('collection')) {
-              options[namedItem.value] = _this.services[namedItem.value];
-              options['collection'] = _this.services[namedItem.value];
+              options[namedItem.value] = _this.mainComponent.services[namedItem.value];
+              options['collection'] = _this.mainComponent.services[namedItem.value];
             }
 
             if (namedItem = attributes.getNamedItem('collection')) {
-              options[namedItem.value] = _this.services[namedItem.value];
-              options['model'] = _this.services[namedItem.value];
+              options[namedItem.value] = _this.mainComponent.services[namedItem.value];
+              options['model'] = _this.mainComponent.services[namedItem.value];
             }
 
             view = new View(_.extend(options, {
@@ -143,7 +153,7 @@
     },
 
     registerService: function(name, collection) {
-      this.services[name] = collection;
+      this.mainComponent.services[name] = collection;
     }
   };
 
