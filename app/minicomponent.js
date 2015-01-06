@@ -122,6 +122,7 @@
       var _this = this;
 
       var component = new Component(name);
+      View.prototype.registerService = component.registerService.bind(component);
       component.registerComponent({
         name: name,
         attachedCallback: function() {

@@ -119,11 +119,7 @@ app.registerView('app-task-list', Backbone.View.extend({
   },
 
   render: function() {
-    if (typeof this.collection.getVisible() === 'undefined') {
-      return this;
-    }
-
-    this.el.innerHTML = this.collection.getVisible().map(function(task){
+    this.el.innerHTML = this.collection.map(function(task){
       return this.template({
         task: task
       });
@@ -155,10 +151,15 @@ app.registerView('app-list-filters', Backbone.View.extend({
   },
 
   render: function() {
+    this.updateFilters();
     this.el.innerHTML = this.template({
       tasks: this.collection,
     });
     return this;
+  },
+
+  updateFilters: function() {
+    this.registerService('filteredTasks', new Tasks(this.collection.getVisible()));
   },
 
   changeVisible: function(e) {
